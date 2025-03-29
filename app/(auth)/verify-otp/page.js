@@ -7,7 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { Mail, KeyIcon } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 const otpSchema = z.object({
@@ -15,7 +15,7 @@ const otpSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
-export default function VerifyOtpComponent() {
+function VerifyOtpComponentInner() {
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -128,5 +128,13 @@ export default function VerifyOtpComponent() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function VerifyOtpComponent() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyOtpComponentInner />
+    </Suspense>
   );
 }
