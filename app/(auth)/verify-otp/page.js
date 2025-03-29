@@ -7,8 +7,8 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { Mail, KeyIcon } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const otpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,8 +17,9 @@ const otpSchema = z.object({
 
 export default function VerifyOtpComponent() {
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const emailFromQuery = searchParams.get("email") || "";
+  const emailFromQuery = searchParams.get("email") ?? "";
 
   const {
     register,
@@ -78,10 +79,8 @@ export default function VerifyOtpComponent() {
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
     <div className="p-6 h-screen flex justify-center items-center">
       <div className="space-y-4">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-x-2">
           <div className="w-6 h-6 rounded-full bg-teal-900"></div>
           <p className="font-semibold text-xl tracking-wide font-sans">DocAI</p>
@@ -129,6 +128,5 @@ export default function VerifyOtpComponent() {
         </form>
       </div>
     </div>
-    </Suspense>
   );
 }
