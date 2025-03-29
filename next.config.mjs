@@ -12,6 +12,9 @@ const nextConfig = {
         config.experiments = { asyncWebAssembly: true, layers: true };
         return config;
     },
+    experimental: {
+        missingSuspenseWithCSRBailout: false,
+    },
 };
 
 export default nextConfig;  
