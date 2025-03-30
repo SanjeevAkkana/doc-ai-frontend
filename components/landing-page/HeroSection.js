@@ -8,7 +8,7 @@ const features = [
     {
         icon: <FileUp className="w-4 h-4 text-teal-600" />, 
         title: "Upload & Analyze", 
-        description: "Upload medical reports in PDF or image format for AI-driven insights."
+        description: "Upload medical reports in image format for AI-driven insights."
     },
     {
         icon: <BrainCircuit className="w-4 h-4 text-teal-600" />, 

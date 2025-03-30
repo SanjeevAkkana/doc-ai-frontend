@@ -4,7 +4,7 @@ const steps = [
     {
         icon: <FileUp className="w-5 h-5 text-teal-600" />, 
         title: "Upload Your Report", 
-        description: "Easily upload your medical report in PDF or image format."
+        description: "Easily upload your medical report in image format."
     },
     {
         icon: <Edit className="w-5 h-5 text-teal-600" />, 
