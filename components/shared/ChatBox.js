@@ -3,13 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, X, Bot, User } from "lucide-react";
 import useChatStore from "@/store/useChatStore";
+import { analyzeHealthQuery } from "@/utils/chatGemini";
 
 const ChatBox = ({ onClose }) => {
   const [query, setQuery] = useState("");
   const { messages, addMessage, isLoading, setLoading } = useChatStore();
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -18,28 +18,30 @@ const ChatBox = ({ onClose }) => {
     e?.preventDefault();
     if (!query.trim() || isLoading) return;
 
-    addMessage({ text: query, sender: "user" });
+    const userMessage = {
+      text: query,
+      sender: "user",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    addMessage(userMessage);
     setQuery("");
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/health-chat-bot`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      });
+      const result = await analyzeHealthQuery(query);
+      const botMessage = {
+        text: result.success ? result.data : result.message,
+        sender: "bot",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
 
-      const data = await response.json();
-      addMessage({ 
-        text: data.response || data.msg, 
-        sender: "bot",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      addMessage(botMessage);
     } catch (error) {
-      addMessage({ 
-        text: "Sorry, I'm having trouble responding. Please try again later.", 
+      addMessage({
+        text: "Sorry, I'm having trouble responding. Please try again later.",
         sender: "bot",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       });
     } finally {
       setLoading(false);
@@ -60,15 +62,12 @@ const ChatBox = ({ onClose }) => {
           <Bot className="h-5 w-5" />
           <h2 className="font-semibold text-lg">Health Assistant</h2>
         </div>
-        <button 
-          onClick={onClose} 
-          className="p-1 cursor-pointer rounded-full hover:bg-teal-700 transition-colors"
-        >
+        <button onClick={onClose} className="p-1 cursor-pointer rounded-full hover:bg-teal-700 transition-colors">
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Messages Container */}
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
@@ -78,14 +77,13 @@ const ChatBox = ({ onClose }) => {
           </div>
         ) : (
           messages.map((msg, index) => (
-            <div 
-              key={index} 
-              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div 
-                className={`max-w-[80%] rounded-2xl p-3 ${msg.sender === "user" 
-                  ? "bg-teal-600 text-white rounded-br-none" 
-                  : "bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm"}`}
+            <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[80%] rounded-2xl p-3 ${
+                  msg.sender === "user"
+                    ? "bg-teal-600 text-white rounded-br-none"
+                    : "bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm"
+                }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   {msg.sender === "user" ? (
@@ -97,9 +95,7 @@ const ChatBox = ({ onClose }) => {
                     {msg.sender === "user" ? "You" : "Health Assistant"}
                   </span>
                   {msg.timestamp && (
-                    <span className="text-xs opacity-70 ml-auto">
-                      {msg.timestamp}
-                    </span>
+                    <span className="text-xs opacity-70 ml-auto">{msg.timestamp}</span>
                   )}
                 </div>
                 <p className="text-sm">{msg.text}</p>
@@ -107,6 +103,7 @@ const ChatBox = ({ onClose }) => {
             </div>
           ))
         )}
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="max-w-[80%] bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-none shadow-sm p-3">
@@ -115,9 +112,9 @@ const ChatBox = ({ onClose }) => {
                 <span className="text-xs font-medium">Health Assistant</span>
               </div>
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -125,7 +122,7 @@ const ChatBox = ({ onClose }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input */}
       <form onSubmit={sendMessage} className="border-t border-gray-200 p-3 bg-white">
         <div className="flex items-center rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-transparent">
           <input
@@ -137,12 +134,14 @@ const ChatBox = ({ onClose }) => {
             placeholder="Type your health question..."
             disabled={isLoading}
           />
-          <button 
+          <button
             type="submit"
             disabled={isLoading || !query.trim()}
-            className={`p-3 rounded-r-xl ${isLoading || !query.trim() 
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-              : "bg-teal-600 cursor-pointer text-white hover:bg-teal-700"}`}
+            className={`p-3 rounded-r-xl ${
+              isLoading || !query.trim()
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-teal-600 cursor-pointer text-white hover:bg-teal-700"
+            }`}
           >
             <Send className="h-5 w-5" />
           </button>
